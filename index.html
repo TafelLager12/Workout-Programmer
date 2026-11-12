@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Workout Programmer</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eceff1;--cd:#fff;--tx:#14181c;--mu:#5d676f;--bd:#cdd3d8;--ac:#1f4fd8;--ct:#fff;--r:#c8372d;--g:#23874f;--a:#d4a000;--b:#2f6fe0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121518;--cd:#1c2126;--tx:#e8ecef;--mu:#9aa5ad;--bd:#343c43;--ac:#6c93ff;--ct:#0b1020;--r:#ff7d72;--g:#5fd08f;--a:#f0b040;--b:#6fa3ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121518;--cd:#1c2126;--tx:#e8ecef;--mu:#9aa5ad;--bd:#343c43;--ac:#6c93ff;--ct:#0b1020;--r:#ff7d72;--g:#5fd08f;--a:#f0b040;--b:#6fa3ff;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:10px 12px 80px}
+h1{font:700 26px 'Barlow Condensed',Impact,sans-serif;margin:8px 0 6px;letter-spacing:.3px}
+#stk{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;margin-bottom:10px;padding:4px 0}nav{display:flex;gap:4px}#tm{margin-top:6px;padding:6px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--cd)}#tm.over{color:var(--r);border-color:var(--r)}
+nav button{flex:1;font:600 17px 'Barlow Condensed',Impact,sans-serif;padding:8px 4px}
+nav button.on,.chip.on{background:var(--ac);color:var(--ct);border-color:var(--ac)}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:10px;margin-bottom:10px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button,select,input,textarea{font:inherit;color:var(--tx);background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:8px;min-height:40px}
+button{cursor:pointer}button.pri{background:var(--ac);color:var(--ct);border-color:var(--ac);font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+input,select{min-width:0}.row>input,.row>select{flex:1 1 130px}
+.mv{display:grid;grid-template-columns:1fr 72px 72px 40px;gap:6px;margin:6px 0}
+.mv .pk{text-align:left;display:block;min-width:0}.mv input{width:100%}
+.x{padding:0;width:40px;color:var(--mu)}
+small{display:block;color:var(--mu);font-size:12px}
+pre{white-space:pre-wrap;word-break:break-word;font:13px/1.45 ui-monospace,Menlo,monospace;margin:8px 0;background:var(--bg);padding:8px;border-radius:6px}
+summary{cursor:pointer;padding:6px 0;font-weight:600}label{font-weight:600;display:block;margin-bottom:4px}
+.bd{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:6px;color:var(--ct);vertical-align:middle}
+.Recent{background:var(--b)}.Ready{background:var(--g)}.Neglected{background:var(--a);color:#14181c}.Never{background:var(--r)}
+.it{padding:8px 4px;border-bottom:1px solid var(--bd);cursor:pointer}.it:last-child{border:0}
+dialog{width:min(640px,94vw);max-height:88vh;border:1px solid var(--bd);border-radius:8px;background:var(--cd);color:var(--tx);padding:12px}
+dialog::backdrop{background:#0008}
+.fr{display:grid;grid-template-columns:1fr 40px;gap:6px;margin:8px 0;padding-bottom:8px;border-bottom:1px solid var(--bd)}.fr textarea{grid-column:1/-1;width:100%}.res{max-height:48vh;overflow:auto;margin-top:6px}
+#t{margin:0;border:0;top:auto;right:auto;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--tx);color:var(--bg);padding:10px 14px;border-radius:6px;z-index:20;max-width:90vw}
+</style></head><body><main>
+<div class="row" style="justify-content:space-between;align-items:center"><h1>Workout Programmer</h1><div id="acct"></div></div>
+<div id="stk"><nav id="nav"></nav><div id="tm" hidden></div></div><div id="v"><p>Loading…</p></div>
+</main><div id="t" popover="manual" hidden></div>
+<dialog id="pk"><div id="pkb"></div><div class="row" style="margin-top:8px"><button data-a="cls">Close</button></div></dialog>
+<dialog id="ac"><b>Change my password</b><input id="np1" type="password" autocomplete="new-password" placeholder="New password (at least 8 characters)" style="width:100%;margin-top:8px"><input id="np2" type="password" autocomplete="new-password" placeholder="Repeat new password" style="width:100%;margin-top:6px"><small id="acm"></small><div class="row" style="margin-top:8px"><button class="pri" id="acs">Save password</button><button id="acx">Cancel</button></div></dialog>
+<datalist id="fm"></datalist><datalist id="rp"></datalist><datalist id="wt"></datalist>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SB_URL="https://gtcghwyhyhnsmoxvegwm.supabase.co",SB_KEY="sb_publishable_k6HdB-FQhCcRf92TgcDdmg_8HN3KmXY";
+const dlFile=(name,text,type)=>{const u=URL.createObjectURL(new Blob([text],{type:type||"text/plain"})),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)};
+const errTxt=e=>(e&&(e.message||e.code))||"unknown error";
+const Z=v=>v==null?"":v;
+async function pull(t,c,o){let out=[],from=0;for(;;){const{data,error}=await db.from(t).select(c).order(o||"id",{ascending:true}).range(from,from+999);if(error)throw error;out=out.concat(data);if(data.length<1000)return out;from+=1000}}
+async function loadLive(){const[mv,pr,lg]=await Promise.all([pull("movements","name,category,pattern,equipment"),pull("proposals","user_id,name,category,pattern,equipment"),pull("log","user_id,log_date,day,workout_type,format,movement,reps,weight,warmup,block")]);
+ S.lib=mv.map(r=>[r.name,Z(r.category),Z(r.pattern),Z(r.equipment)]);
+ const pm={};pr.forEach(r=>{(pm[r.user_id]=pm[r.user_id]||{id:r.user_id,movs:[]}).movs.push([r.name,Z(r.category),Z(r.pattern),Z(r.equipment)])});S.pend=Object.values(pm);
+ const lr=r=>[r.log_date,Z(r.day),Z(r.workout_type),Z(r.format),Z(r.movement),Z(r.reps),Z(r.weight),Z(r.warmup),Z(r.block)];
+ S.logMain=lg.filter(r=>!r.user_id).map(lr);S.logU=lg.filter(r=>r.user_id).map(lr);mm();relog()}
+async function loadWarm(){S.warm=(await pull("warmups","name,format,description")).map(r=>[r.name,Z(r.format),Z(r.description)])}
+async function loadReps(){const o={reps:[],formats:[],types:[]};(await pull("rep_options","kind,value")).forEach(r=>o[r.kind]&&o[r.kind].push(r.value));S.reps=o}
+async function loadFw(){if(R.t<2){S.fw=[];S.fwn=[];return}S.fwn=(await pull("framework_blocks","name,sort","sort")).map(r=>r.name);S.fw=(await pull("framework_rows","block,day,section,description,example")).map(r=>[r.block,r.day,Z(r.section),Z(r.description),Z(r.example)])}
+const PN={};
+async function nameMap(ids){const need=ids.filter(i=>!PN[i]);if(need.length){try{const{data}=await db.from("profiles").select("id,email,display_name").in("id",need);(data||[]).forEach(p=>PN[p.id]=p.display_name||p.email||"someone")}catch(e){}}return PN}
+const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],E="\u001f",dec=s=>s.split(E),enc=a=>a.join(E);
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const days=d=>Math.floor((new Date(today())-new Date(d))/864e5);
+const LBL={Recent:"Recent",Ready:"Ready to program",Neglected:"Neglected",Never:"Never used"};
+const stOk=(f,s)=>!f||f===s||(f==="RR"&&(s==="Recent"||s==="Ready"))||(f==="NN"&&(s==="Neglected"||s==="Never"));
+const blk=()=>S.fwn.includes(P.block)?P.block:(S.fwn[0]||"");
+const legacy=b=>b==="Week1-3"?"CFP264 Base":b;
+const nextWarm=()=>"Warm Up "+(Math.max(0,...S.warm.map(w=>+((/^Warm Up (\d+)$/i.exec(w[0])||[])[1]||0)))+1);
+const wForm=()=>`<div class="card" style="margin:8px 0 0"><b>${W.orig?"Edit warm-up":"New warm-up"}</b><input style="width:100%;margin-top:6px" placeholder="Name (blank = ${W.orig?"keep the same name":nextWarm()})" value="${esc(W.name)}" data-f="wname"><input list="fm" style="width:100%;margin-top:6px" placeholder="Format (e.g. 4 Rounds Every 2 Min)" value="${esc(W.fmt)}" data-f="wfmt"><textarea rows="5" style="width:100%;margin-top:6px" placeholder="Exercises, one per line" data-f="wdesc">${esc(W.desc)}</textarea><div class="row" style="margin-top:6px"><button class="pri" data-a="wsave">Save warm-up</button><button data-a="wcancel">Cancel</button></div></div>`;
+let db,tab="build",ST={},arm="",hd="",W=null,ED=null,FB="",FD="Monday",FN=null,R={t:1,id:null,u:null},S={movs:[],lib:[],pend:[],warm:[],reps:{reps:[],formats:[],types:[]},fw:[],fwn:[],log:[],logMain:[],logU:[]};
+const mm=()=>{const me=R.t<2?(S.pend.find(p=>p.id===R.id)||{movs:[]}).movs.map(m=>[...m,"P"]):[];S.movs=[...S.lib,...me]};
+const relog=()=>{S.log=[...S.logMain,...S.logU]};
+const pendAll=()=>S.pend.flatMap(p=>p.movs.map(m=>({pid:p.id,m})));
+const rvHtml=()=>{if(R.t<2)return"";const l=pendAll();return`<div class="card"><label>Pending movements (${l.length})</label>${l.map(x=>`<div class="it" style="cursor:default"><b>${esc(x.m[0])}</b><small>${esc(x.m[1]+" · "+x.m[2]+(x.m[3]?" · "+x.m[3]:""))} · suggested by <span class="pn" data-pid="${esc(x.pid)}">someone</span></small><div class="row" style="margin-top:6px"><button class="pri" data-a="mok" data-pid="${esc(x.pid)}" data-n="${esc(x.m[0])}">Approve</button><button data-a="mno" data-pid="${esc(x.pid)}" data-n="${esc(x.m[0])}">Reject</button></div></div>`).join("")||"<small>Nothing waiting for approval.</small>"}</div>`};
+async function fillNames(){try{const ids=[...new Set([...document.querySelectorAll(".pn")].map(e=>e.dataset.pid))];if(!ids.length)return;const ps=await nameMap(ids);document.querySelectorAll(".pn").forEach(e=>{e.textContent=ps[e.dataset.pid]||"someone"})}catch(e){}}
+async function apprMov(pid,name,ok){try{const{error}=await db.rpc("approve_proposal",{p_user:pid,p_name:name,p_ok:ok});if(error)throw error;await loadLive();render();toast((ok?"Approved ":"Rejected ")+name)}catch(e){toast("Could not update: "+errTxt(e))}}
+async function rTeam(){$("#v").innerHTML=`<div class="card"><label>Team</label><div id="tl"><small>Loading...</small></div><small>Change a person's role here; they see it the next time they open the app. To add a new person, create their login in Supabase (Authentication, Users, Add user), then set their role here.</small></div>`;
+ try{const{data,error}=await db.from("profiles").select("id,email,display_name,role,last_seen");if(error)throw error;const ord={owner:3,editor:2,contributor:1},rows=(data||[]).sort((a,b)=>(ord[b.role]||0)-(ord[a.role]||0)||String(a.email).localeCompare(String(b.email)));
+  $("#tl").innerHTML=rows.map(r=>{const me=r.id===R.id;return `<div class="it" style="cursor:default"><b>${esc(me?"You":(r.display_name||r.email))}</b><small>${esc(r.email||"")}</small>${me?`<span class="bd" style="background:var(--ac)">Owner</span>`:`<select class="rl" data-id="${esc(r.id)}"><option value="owner" ${r.role==="owner"?"selected":""}>Owner</option><option value="editor" ${r.role==="editor"?"selected":""}>Editor</option><option value="contributor" ${r.role==="contributor"?"selected":""}>Contributor</option></select>`}<small>last opened ${esc(r.last_seen||"never")}</small></div>`}).join("")||"<small>No one yet.</small>";
+  $("#tl").onchange=async e=>{const s=e.target.closest("select.rl");if(!s)return;const{error}=await db.from("profiles").update({role:s.value}).eq("id",s.dataset.id);toast(error?"Could not change role: "+errTxt(error):"Role updated")}}catch(e){$("#tl").textContent="Could not load the team list."}}
+let P={day:DAYS[new Date().getDay()-1]||"Monday",date:today(),warm:"",blocks:[]};
+try{const d=JSON.parse(localStorage.getItem("draft")||"null");if(d&&d.blocks)P=d}catch(e){}
+const save=()=>{try{localStorage.setItem("draft",JSON.stringify(P))}catch(e){}};
+const toast=t=>{const e=$("#t");e.textContent=t;e.hidden=false;clearTimeout(toast.h);try{e.showPopover()}catch(x){}toast.h=setTimeout(()=>{e.hidden=true;try{e.hidePopover()}catch(x){}},/^Could not/.test(t)?10000:2800)};
+const norm=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g," ").trim().split(" ").map(w=>w.length>3&&w.endsWith("s")&&!w.endsWith("ss")?w.slice(0,-1):w).join(" ");
+const match=(n,q)=>{const a=norm(n),c=a.replace(/ /g,"");return norm(q).split(" ").filter(Boolean).every(t=>a.includes(t)||c.includes(t))};
+function stats(){const m={};for(const r of S.log){const k=norm(r[4]);if(!k)continue;const o=m[k]||(m[k]={last:"",n:0});o.n++;if(r[0]>o.last)o.last=r[0]}return m}
+function status(n){const o=ST[norm(n)];if(!o)return"Never";const d=days(o.last);return d<=7?"Recent":d<=20?"Ready":"Neglected"}
+const badge=n=>{const s=status(n);return`<span class="bd ${s}">${LBL[s]}</span>`};
+const info=m=>{const o=ST[norm(m[0])];return esc(m[1]+" · "+m[2])+(o?esc(" · last "+days(o.last)+"d ago · used "+o.n+"×"):"")};
+const mvLine=n=>{const m=S.movs.find(x=>x[0]===n);return`<b>${esc(n)}</b>`+(m?badge(n)+`<small>${info(m)}</small>`:"")};
+function mkList(root,onPick,rand){
+ const u=i=>[...new Set(S.movs.map(m=>m[i]))].filter(Boolean).sort();
+ const opt=(l,a)=>`<option value="">${l}</option>`+a.map(x=>`<option>${esc(x)}</option>`).join("");
+ root.innerHTML=`<input class="q" type="search" placeholder="Search movements (push-up, push ups…)" style="width:100%"><div class="row" style="margin-top:6px"><select class="fc">${opt("All categories",u(1))}</select><select class="fp">${opt("All patterns",u(2))}</select><select class="fs"><option value="">Any status</option><option value="Recent">Recent</option><option value="Ready">Ready to program</option><option value="Neglected">Neglected</option><option value="Never">Never used</option><option value="RR">Recent &amp; Ready</option><option value="NN">Neglected &amp; Never used</option></select></div>${rand?'<button class="rnd" style="margin-top:6px">Random pick (not recent)</button>':""}<div class="res"></div><div class="ab"></div>`;
+ const f=()=>S.movs.filter(m=>(!root.querySelector(".q").value||match(m[0],root.querySelector(".q").value))&&(!root.querySelector(".fc").value||m[1]===root.querySelector(".fc").value)&&(!root.querySelector(".fp").value||m[2]===root.querySelector(".fp").value)&&stOk(root.querySelector(".fs").value,status(m[0])));
+ const draw=()=>{const l=f();root.querySelector(".res").innerHTML=l.slice(0,80).map(m=>`<div class="it" data-n="${esc(m[0])}"><b>${esc(m[0])}</b>${badge(m[0])}${m[4]==="P"?'<span class="bd" style="background:var(--mu)">Pending approval</span>':""}<small>${info(m)}</small></div>`).join("")+(l.length>80?`<small>${l.length-80} more, refine the search</small>`:"")||"<small>No match.</small>";const q=root.querySelector(".q").value.trim();root.querySelector(".ab").innerHTML=rand&&q&&!S.movs.some(m=>norm(m[0])===norm(q))?`<div class="addbox card" style="margin:8px 0 0"><b>Add “${esc(q)}” as a new movement</b><div class="row" style="margin:6px 0"><select class="ac">${opt("Category",u(1))}</select><select class="ap">${opt("Pattern",u(2))}</select></div><button class="pri adm">Add and use</button></div>`:""};
+ root.oninput=e=>{if(e.target.classList.contains("fc")){const c=e.target.value,fp=root.querySelector(".fp"),cur=fp.value,ps=[...new Set(S.movs.filter(m=>!c||m[1]===c).map(m=>m[2]))].filter(Boolean).sort();fp.innerHTML=opt("All patterns",ps);if(ps.includes(cur))fp.value=cur}if(!e.target.closest(".addbox"))draw()};draw();
+ root.onclick=e=>{if(e.target.classList.contains("adm")){const n=root.querySelector(".q").value.trim(),c=root.querySelector(".ac").value,p=root.querySelector(".ap").value;if(!c||!p)return toast("Pick a category and a pattern");addMovement(n,c,p,"").then(ok=>{if(ok&&onPick)onPick(n)});return}const i=e.target.closest(".it");if(i&&onPick)onPick(i.dataset.n);if(e.target.classList.contains("rnd")){const c=f().filter(m=>status(m[0])!=="Recent");if(!c.length)return toast("Nothing matches those filters");onPick(c[Math.floor(Math.random()*c.length)][0])}};
+}
+function textOf(date,day,warm,blocks){
+ const w=S.warm.find(x=>x[0]===warm);let t=`${date.replace(/-/g,"")}\n\n*${day}*\n\n*Warm-Up*\n`;if(w)t+=`${w[0]}\n${w[1]}\n${w[2]}\n`;t+="\n";
+ for(const b of blocks){if(!b.items.some(i=>i.mov)&&!b.fmt)continue;t+=`*${b.type||"Workout"}*\n`;if(b.fmt)t+=b.fmt+"\n";for(const i of b.items){if(i.lab)t+=i.lab+"\n";if(i.mov)t+=[i.reps,i.mov,i.weight].filter(Boolean).join(" ")+"\n"}t+="\n"}
+ return t.trim()}
+function rowsToBlocks(rows){const bl=[];let last="";for(const r of rows){if(!bl.length||r[2]!==last){bl.push({type:r[2],fmt:r[3],items:[]});last=r[2]}else if(r[3]&&r[3]!==bl[bl.length-1].fmt){const b=bl[bl.length-1];if(!b.fmt&&!b.items.length)b.fmt=r[3];else b.items.push({mov:"",reps:"",weight:"",lab:r[3]})}if(r[4])bl[bl.length-1].items.push({mov:r[4],reps:r[5],weight:r[6]})}return bl}
+function prevText(){const rows=S.log.filter(r=>r[1]===P.day&&r[0]<P.date),d=rows.map(r=>r[0]).sort().pop();if(!d)return"No earlier "+P.day+" logged.";const r=rows.filter(x=>x[0]===d);return textOf(d,P.day,r[0][7],rowsToBlocks(r))}
+const blockHtml=(b,bi)=>`<div class="card"><div class="row"><input list="wt" placeholder="Workout type" value="${esc(b.type)}" data-f="type" data-b="${bi}"><select data-f="fmtpick" data-b="${bi}"><option value="">Add a format…</option>${S.reps.formats.map(x=>`<option>${esc(x)}</option>`).join("")}</select><button data-a="cf" data-b="${bi}">Clear format</button><button class="x" data-a="rb" data-b="${bi}" aria-label="Remove block">×</button></div><textarea rows="2" style="width:100%;margin-top:6px" placeholder="Format / scheme (add extra lines, e.g. Alternate movements)" data-f="fmt" data-b="${bi}">${esc(b.fmt)}</textarea><div class="row" style="margin-top:6px"><small style="margin:0">Time:</small><b class="bt" data-bt="${bi}"></b><input type="number" min="0" step="0.5" inputmode="decimal" placeholder="override (min)" value="${esc(b.mins||"")}" data-f="mins" data-b="${bi}" style="flex:0 0 130px"></div>${b.items.map((it,ii)=>it.lab!=null&&!it.mov?`<div class="mv" style="grid-template-columns:1fr 40px"><input list="fm" placeholder="Label (e.g. Complex A)" value="${esc(it.lab)}" data-f="lab" data-b="${bi}" data-i="${ii}"><button class="x" data-a="ri" data-b="${bi}" data-i="${ii}" aria-label="Remove label">×</button></div>`:`<div class="mv"><button class="pk" data-a="pick" data-b="${bi}" data-i="${ii}">${it.mov?mvLine(it.mov):"Pick movement…"}</button><input list="rp" placeholder="Reps" value="${esc(it.reps)}" data-f="reps" data-b="${bi}" data-i="${ii}"><input placeholder="Weight" value="${esc(it.weight)}" data-f="weight" data-b="${bi}" data-i="${ii}"><button class="x" data-a="ri" data-b="${bi}" data-i="${ii}" aria-label="Remove movement">×</button></div>`).join("")}<button data-a="addi" data-b="${bi}">+ Movement</button> <button data-a="addl" data-b="${bi}">+ Label</button></div>`;
+const nb=()=>({type:"",fmt:"",items:[{mov:"",reps:"",weight:""}]});
+const LIMIT=50,rd=x=>Math.ceil(x*10-1e-6)/10;
+function estMin(t,nm){t=String(t||"");nm=Math.max(1,nm||1);let m;
+ const alt=/alternate\s+movements/i.test(t),cx=/alternating\s+complexes/i.test(t),nc=new Set((t.match(/\bcomplex\s+[a-z0-9]{1,2}\b/gi)||[]).map(s=>s.toLowerCase().replace(/\s+/g," "))).size;
+ const mult=cx?nc:alt?nm:1;
+ if(m=t.match(/(\d+)\s*rounds?\s*every\s*(\d+(?:\.\d+)?)\s*(min|sec)/i))return mult?+m[1]*(+m[2])/(/sec/i.test(m[3])?60:1)*mult:null;
+ if(m=t.match(/(\d+)\s*rounds?[^()\n]*\((\d+):(\d+)\s*split\)/i))return +m[1]*(+m[2]+ +m[3])/60*nm;
+ if(m=t.match(/(\d+)\s*rounds?[^\n]*?(\d+):(\d+)\s*min/i))return +m[1]*(+m[2]+ +m[3])*(/split/i.test(t)?nm:1);
+ if(m=t.match(/\(?\s*(\d+)\s*x\s*(\d+):(\d+)\s*\)/i))return +m[1]*(+m[2]+ +m[3])/60;
+ if(m=t.match(/(\d+(?:\.\d+)?)\s*min\b/i))return +m[1];
+ if(m=t.match(/time\s*cap[:\s]*(\d+)/i))return +m[1];
+ if(m=t.match(/(\d+)\s*rounds?\s*emom\b/i))return mult?+m[1]*mult:null;
+ return null}
+function tm(){const el=$("#tm");if(!el)return;let tot=0,unk=0;
+ const w=S.warm.find(x=>x[0]===P.warm),ws=$("#wtm");
+ if(w){const v=estMin(w[1]);if(v==null)unk++;else tot+=v;if(ws)ws.textContent=v==null?"Warm-up time unknown":"Warm-up ≈ "+rd(v)+" min"}else if(ws)ws.textContent="";
+ P.blocks.forEach((b,bi)=>{const s=document.querySelector(`[data-bt="${bi}"]`);if(!b.fmt&&!b.items.some(i=>i.mov)){if(s)s.textContent="";return}
+  const o=parseFloat(b.mins),v=(b.mins!==""&&b.mins!=null&&isFinite(o))?o:estMin(b.fmt+"\n"+b.items.filter(i=>i.lab).map(i=>i.lab).join("\n"),b.items.filter(i=>i.mov).length);if(v==null)unk++;else tot+=v;
+  if(s)s.textContent=v==null?"unknown, enter minutes":"≈ "+rd(v)+" min"});
+ const over=tot>LIMIT;el.hidden=false;el.className=over?"over":"";
+ el.innerHTML=`<b>≈ ${rd(tot)} / ${LIMIT} min</b>`+(unk?` <span style="color:var(--mu)">(+${unk} without a time)</span>`:"")+(over?" · over the window":"")}
+const pv=()=>{const e=$("#pv");if(e)e.textContent=textOf(P.date,P.day,P.warm,P.blocks);tm()};
+function rBuild(){
+ if(!P.blocks.length)P.blocks=[nb()];const bk=blk(),fw=S.fw.filter(r=>r[0]===bk&&r[1]===P.day),w=S.warm.find(x=>x[0]===P.warm);
+ $("#v").innerHTML=`<div class="card"><div class="row"><input type="date" value="${P.date}" data-f="date">${DAYS.map(d=>`<button class="chip ${d===P.day?"on":""}" data-a="day" data-v="${d}">${d.slice(0,3)}</button>`).join("")}</div><div class="row" style="margin-top:6px"><label style="margin:0">Block</label><select data-f="block">${S.fwn.map(n=>`<option ${n===bk?"selected":""}>${esc(n)}</option>`).join("")}</select></div>
+ <details><summary>Framework: ${esc(bk)} · ${P.day}</summary>${fw.map(r=>`<p><b>${esc(r[2])}</b> ${esc(r[3])}${r[4]?`<small>e.g. ${esc(r[4])}</small>`:""}</p>`).join("")||"<p>No framework for this block and day yet.</p>"}</details>
+ <details><summary>Previous ${P.day}</summary><pre>${esc(prevText())}</pre></details></div>
+ <div class="card"><label>Warm-up</label><select data-f="warm" style="width:100%"><option value="">None</option>${S.warm.map(x=>`<option ${x[0]===P.warm?"selected":""}>${esc(x[0])}</option>`).join("")}</select><small id="wtm"></small>${w?`<pre>${esc(w[1]+"\n"+w[2])}</pre>`:""}${R.t<2?"":`<div class="row" style="margin-top:6px"><button data-a="wnew">New warm-up</button>${w?'<button data-a="wedit">Edit this warm-up</button>':""}</div>${W?wForm():""}`}</div>
+ ${P.blocks.map(blockHtml).join("")}<button data-a="addb">+ Add block</button>
+ <div class="card" style="margin-top:10px"><label>WhatsApp preview</label><pre id="pv"></pre><div class="row"><button class="pri" data-a="copy">Copy for WhatsApp</button><button data-a="log">Log workout</button><button data-a="clr">Clear</button></div></div>`;if(R.t<2){const d=$("#v").querySelector("details");if(d)d.remove()}pv();save()}
+function rMov(){
+ const u=i=>[...new Set(S.movs.map(m=>m[i]))].filter(Boolean).sort().map(x=>`<option>${esc(x)}</option>`).join("");
+ $("#v").innerHTML=`${rvHtml()}<div class="card"><div id="ml"></div></div><div class="card"><label>${R.t<2?"Suggest a new movement (goes live once approved)":"Add a movement"}</label><div class="row"><input id="nm" placeholder="Name (e.g. Push Up)"><select id="nc">${u(1)}</select><select id="np">${u(2)}</select><input id="ne" placeholder="Equipment"></div><button class="pri" data-a="addm" style="margin-top:6px">Add to library</button></div>${R.t<2?"":`<div class="card"><label>Edit or delete a movement</label><div id="ed"></div></div>`}`;mkList($("#ml"),R.t<2?null:n=>{const m=S.movs.find(x=>x[0]===n);if(!m)return;ED={orig:n,name:m[0],cat:m[1],pat:m[2],eq:m[3]||""};rEd();$("#ed").scrollIntoView({behavior:"smooth",block:"center"})},false);rEd();fillNames()}
+function rEd(){const el=$("#ed");if(!el)return;if(!ED){el.innerHTML="<small>Tap a movement in the list above to edit or delete it.</small>";return}
+ const o=(i,v)=>[...new Set([...S.movs.map(m=>m[i]),v])].filter(Boolean).sort().map(x=>`<option ${x===v?"selected":""}>${esc(x)}</option>`).join("");
+ el.innerHTML=`<b>${esc(ED.orig)}</b><div class="row" style="margin-top:6px"><input data-f="en" value="${esc(ED.name)}" placeholder="Name"><select data-f="ec">${o(1,ED.cat)}</select><select data-f="ep">${o(2,ED.pat)}</select><input data-f="ee" value="${esc(ED.eq)}" placeholder="Equipment"></div><small>Past workouts are matched by name, so renaming a movement means its earlier use stops counting toward its status. Deleting never touches past workouts.</small><div class="row" style="margin-top:6px"><button class="pri" data-a="esave">Save changes</button><button data-a="edel">Delete</button><button data-a="ecan">Cancel</button></div>`}
+async function editMov(){const n=ED.name.trim();if(!n)return toast("Enter a name");if(norm(n)!==norm(ED.orig)&&S.movs.some(m=>norm(m[0])===norm(n)))return toast("Another movement already has that name");
+ try{const{data,error}=await db.from("movements").update({name:n,category:ED.cat,pattern:ED.pat,equipment:ED.eq.trim()||null}).eq("name",ED.orig).select();if(error)throw error;if(!data.length)return toast("Could not save: that movement no longer exists");await loadLive();toast("Saved "+n);ED=null;render()}catch(e){toast("Could not save: "+errTxt(e))}}
+async function delMov(){try{const{error}=await db.from("movements").delete().eq("name",ED.orig);if(error)throw error;await loadLive();toast("Deleted "+ED.orig);ED=null;render()}catch(e){toast("Could not delete: "+errTxt(e))}}
+async function saveWarm(){const name=W.name.trim()||(W.orig||nextWarm()),fmt=W.fmt.trim(),desc=W.desc.trim();if(!fmt&&!desc)return toast("Add the exercises first");
+ if(S.warm.some(w=>w[0]!==W.orig&&w[0].trim().toLowerCase()===name.toLowerCase()))return toast("A warm-up with that name already exists");
+ try{const row={name,format:fmt||null,description:desc||null};const q=W.orig?db.from("warmups").update(row).eq("name",W.orig):db.from("warmups").insert(row);const{error}=await q;if(error)throw error;await loadWarm();P.warm=name;W=null;toast("Saved "+name);rBuild()}catch(e){toast("Could not save warm-up: "+errTxt(e))}}
+async function saveFw(){try{const{error}=await db.rpc("save_framework",{p_names:[...S.fwn],p_rows:S.fw.filter(r=>r[2]||r[3]||r[4])});if(error)throw error;toast("Framework saved")}catch(e){toast("Could not save framework: "+errTxt(e))}}
+function okBlock(){const n=FN.name.trim();if(!n)return toast("Enter a name");if(S.fwn.some(x=>x.toLowerCase()===n.toLowerCase()&&!(FN.mode==="ren"&&x===FB)))return toast("That block name already exists");
+ if(FN.mode==="new"){if(FN.copy)S.fw.push(...S.fw.filter(r=>r[0]===FB).map(r=>[n,...r.slice(1)]));S.fwn.push(n)}else{S.fw.forEach(r=>{if(r[0]===FB)r[0]=n});S.fwn=S.fwn.map(x=>x===FB?n:x);if(P.block===FB)P.block=n}
+ FB=n;FN=null;saveFw();rFw()}
+function delBlock(){if(S.fwn.length<2)return toast("Keep at least one block");S.fw=S.fw.filter(r=>r[0]!==FB);S.fwn=S.fwn.filter(x=>x!==FB);if(P.block===FB)P.block="";FB=S.fwn[0];saveFw();rFw()}
+function rFw(){
+ if(!S.fwn.includes(FB))FB=blk()||S.fwn[0]||"";
+ const rows=S.fw.map((r,i)=>[r,i]).filter(([r])=>r[0]===FB&&r[1]===FD);
+ $("#v").innerHTML=`<div class="card"><div class="row"><select data-f="fb">${S.fwn.map(n=>`<option ${n===FB?"selected":""}>${esc(n)}</option>`).join("")}</select><button data-a="fnew">New block</button><button data-a="fren">Rename</button><button data-a="fdel">Delete block</button></div><div class="row" style="margin-top:6px">${DAYS.map(d=>`<button class="chip ${d===FD?"on":""}" data-a="fday" data-v="${d}">${d.slice(0,3)}</button>`).join("")}</div></div>${FN?`<div class="card"><b>${FN.mode==="new"?"New block":"Rename block"}</b><input style="width:100%;margin:6px 0" data-f="fnn" value="${esc(FN.name)}" placeholder="Block name">${FN.mode==="new"?`<label style="font-weight:400"><input type="checkbox" data-f="fnc" ${FN.copy?"checked":""}> Copy the current block’s rows</label>`:`<small>Workouts already logged keep the old block name.</small>`}<div class="row" style="margin-top:6px"><button class="pri" data-a="fok">${FN.mode==="new"?"Create":"Rename"}</button><button data-a="fcan">Cancel</button></div></div>`:""}<div class="card"><label>${esc(FB)} · ${FD}</label>${rows.map(([r,i])=>`<div class="fr"><input value="${esc(r[2])}" placeholder="Block label (e.g. Strength)" data-f="fl" data-i="${i}"><button class="x" data-a="frd" data-i="${i}" aria-label="Remove row">×</button><textarea rows="2" placeholder="Prescription" data-f="ft" data-i="${i}">${esc(r[3])}</textarea><textarea rows="2" placeholder="Example (optional)" data-f="fe" data-i="${i}">${esc(r[4])}</textarea></div>`).join("")||"<small>No rows for this day yet.</small>"}<div class="row" style="margin-top:6px"><button data-a="fadd">+ Add row</button><button class="pri" data-a="fsave">Save framework</button></div><small>Unsaved changes are lost if you close the page.</small></div>`}
+function rHist(){
+ const ds=[...new Set(S.log.map(r=>r[0]))].sort().reverse();
+ $("#v").innerHTML=`<div class="card"><label>Past workout</label><select data-f="hd" style="width:100%"><option value="">Choose a date…</option>${ds.map(d=>`<option ${d===hd?"selected":""}>${d}</option>`).join("")}</select><pre id="hp"></pre><button id="hu" data-a="tpl" hidden>Use as template for today</button></div><div class="card"><label>When was a movement used?</label><input type="search" data-f="hm" placeholder="Search movement" style="width:100%"><div id="hr"></div></div>`;hSel()}
+function hSel(){const r=S.log.filter(x=>x[0]===hd);if($("#hp"))$("#hp").textContent=r.length?"Block: "+(legacy(r[0][8])||"n/a")+"\n\n"+textOf(hd,r[0][1],r[0][7],rowsToBlocks(r)):"";if($("#hu"))$("#hu").hidden=!r.length}
+function rExp(){$("#v").innerHTML=`<div class="card"><small>${lastBk()?"Last backup: "+lastBk():"No backup yet"}</small><label>Download for your Excel record</label><p><small>Downloads open in Excel. <b>Log:</b> paste the rows under your Log sheet (dates use the same 20261027 format). <b>Movements:</b> paste into columns B to E of Movement_Library. <b>Rep_Library:</b> paste the three columns into B, E and H of Rep_Library. New entries sit at the bottom of each list. <b>Framework:</b> paste into columns A to E of the Framework sheet (the first column is the block name).</small></p><label>Log rows from date (blank = everything)</label><input type="date" id="fd" style="margin-bottom:8px"><div class="row"><button class="pri" data-a="bk">Backup everything (one file)</button><button data-a="dlall">Download all (CSVs)</button><button data-a="dl" data-v="log">Log (CSV)</button><button data-a="dl" data-v="mov">Movements (CSV)</button><button data-a="dl" data-v="rep">Rep_Library (CSV)</button><button data-a="dl" data-v="warm">Warm-ups (CSV)</button><button data-a="dl" data-v="fw">Framework (CSV)</button></div></div>`}
+const csv=r=>"\ufeff"+r.map(x=>x.map(c=>`"${String(c==null?"":c).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+const lastBk=()=>{try{return localStorage.getItem("lastBackup")||""}catch(e){return""}};
+const bkHtml=()=>{if(R.t<3)return"";const l=lastBk(),d=l?days(l):null;if(d!==null&&d<1)return"";return`<div class="card" style="border-color:var(--a)"><b>${l?"Last backup: "+(d===1?"yesterday":d+" days ago"):"No backup yet"}</b><div class="row" style="margin-top:6px"><button class="pri" data-a="bk">Back up now</button></div></div>`};
+async function backupAll(){const data=JSON.stringify({app:"workout-programmer",saved:new Date().toISOString(),counts:{movements:S.lib.length,log:S.log.length},movements:S.lib,warmups:S.warm,reps:S.reps,framework:{names:S.fwn,rows:S.fw},log:S.log});
+ try{dlFile("WorkoutBackup_"+today()+".json",data,"application/json");try{localStorage.setItem("lastBackup",today())}catch(e){}toast("Backup saved to your Downloads");if(tab==="build")rBuild()}catch(e){toast("Backup failed")}}
+async function dl(k){
+ let n,rows;if(k==="log"){const f=$("#fd").value;n="Log";rows=[["Date","Day","Workout Type","Format / Scheme","Movement Name","Reps","Weight","Warm Up","Rotation Phase"],...S.log.filter(r=>!f||r[0]>=f).sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0).map(r=>[r[0].replace(/-/g,""),...r.slice(1)])]}
+ else if(k==="fw"){n="Framework";rows=[["Rotation","Day","Block","Prescription","Example"],...S.fw]}else if(k==="rep"){n="Rep_Library";const R=S.reps,L=Math.max(R.reps.length,R.formats.length,R.types.length);rows=[["Rep Scheme Description","Format Description","Workout Description"],...Array.from({length:L},(_,i)=>[R.reps[i]||"",R.formats[i]||"",R.types[i]||""])]}else if(k==="mov"){n="Movements";rows=[["Movement Name","Category","Pattern","Equipment"],...S.movs]}else{n="Warmups";rows=[["Warm Up ID","Format","Exercises / Description"],...S.warm]}
+ try{dlFile(`${n}_${today()}.csv`,csv(rows),"text/csv;charset=utf-8")}catch(e){toast("Download failed")}}
+async function logIt(){
+ const rows=[];for(const b of P.blocks){let pend=[],k=0;for(const i of b.items){if(i.lab!=null&&!i.mov){if(i.lab.trim())pend.push(i.lab.trim());continue}if(!i.mov)continue;rows.push([P.date,P.day,b.type,(k===0?[b.fmt,...pend]:pend).filter(Boolean).join("\n"),i.mov,i.reps,i.weight,P.warm,blk()]);pend=[];k++}if(!k&&b.fmt)rows.push([P.date,P.day,b.type,b.fmt,"","","",P.warm,blk()])}
+ if(!rows.length)return toast("Add at least one movement first");if(R.t<2&&!R.id)return toast("Sign in to log workouts");
+ try{const{error}=await db.rpc("save_log_day",{p_date:P.date,p_rows:rows});if(error)throw error;await loadLive();const nf=await saveFormats();toast("Logged "+rows.length+" lines for "+P.date+(nf&&nf.length?". Added to library: "+nf.join("; "):nf===null?". Could not save new entries to the library.":""));render()}catch(e){toast("Could not log: "+errTxt(e))}}
+async function saveFormats(){if(R.t<2)return[];try{const lc=x=>String(x).trim().toLowerCase(),nw=(a,b)=>[...new Map(a.map(x=>String(x).trim()).filter(Boolean).map(x=>[lc(x),x])).values()].filter(x=>!b.some(y=>lc(y)===lc(x)));const bs=P.blocks.filter(b=>b.fmt||b.items.some(i=>i.mov));const fm=nw(bs.map(b=>(b.fmt||"").split("\n")[0]),S.reps.formats),rp=nw(bs.flatMap(b=>b.items.filter(i=>i.mov).map(i=>i.reps)),S.reps.reps),ty=nw(bs.map(b=>b.type),S.reps.types);if(!fm.length&&!rp.length&&!ty.length)return[];const n0=S.reps.formats.length+S.reps.reps.length+S.reps.types.length,rows=[...fm.map(v=>({kind:"formats",value:v})),...rp.map(v=>({kind:"reps",value:v})),...ty.map(v=>({kind:"types",value:v}))].map((r,i)=>({...r,sort:n0+i}));const{error}=await db.from("rep_options").upsert(rows,{onConflict:"kind,value",ignoreDuplicates:true});if(error)throw error;await loadReps();render();return[...fm,...rp,...ty]}catch(e){return null}}
+async function addMov(){if(await addMovement($("#nm").value.trim(),$("#nc").value,$("#np").value,$("#ne").value.trim()))$("#nm").value=""}
+async function addMovement(n,c,p,eq){if(!n){toast("Enter a name");return false}
+ if(S.movs.some(m=>norm(m[0])===norm(n))){toast("Already in the library (spelling variants count as the same)");return false}if(R.t<2&&!R.id){toast("Sign in to suggest movements");return false}
+ try{const row={name:n,category:c||null,pattern:p||null,equipment:eq||null};if(R.t<2){const{error}=await db.from("proposals").insert(row);if(error)throw error;await loadLive();toast("Added "+n+" (pending approval)");render();return true}const{error}=await db.from("movements").insert(row);if(error)throw error;await loadLive();toast("Added "+n);render();return true}catch(e){toast("Could not add: "+errTxt(e));return false}}
+async function copy(){const t=$("#pv").textContent;try{await navigator.clipboard.writeText(t);toast("Copied. Paste into WhatsApp")}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("Copied. Paste into WhatsApp")}catch(x){toast("Press and hold the preview to copy")}a.remove()}}
+const two=(k,b,t)=>{if(arm===k){arm="";return true}arm=k;const o=b.textContent;b.textContent=t;setTimeout(()=>{if(arm===k){arm="";if(tab==="build")rBuild();else b.textContent=o}},4000);return false};
+function render(){if((tab==="fw"&&R.t<2)||((tab==="exp"||tab==="team")&&R.t<3))tab="build";ST=stats();$("#nav").innerHTML=[["build","Build"],["mov","Movements"],["hist","History"],...(R.t>=2?[["fw","Framework"]]:[]),...(R.t===3?[["exp","Export"],["team","Team"]]:[])].map(([k,l])=>`<button class="${k===tab?"on":""}" data-a="tab" data-v="${k}">${l}</button>`).join("");$("#tm").hidden=tab!=="build";({build:rBuild,mov:rMov,hist:rHist,fw:rFw,exp:rExp,team:rTeam})[tab]();
+ $("#fm").innerHTML=S.reps.formats.map(x=>`<option value="${esc(x)}">`).join("");$("#rp").innerHTML=S.reps.reps.map(x=>`<option value="${esc(x)}">`).join("");$("#wt").innerHTML=S.reps.types.map(x=>`<option value="${esc(x)}">`).join("")}
+document.addEventListener("click",e=>{const a=e.target.closest("[data-a]");if(!a||!db)return;const {a:k,b,i,v}=a.dataset;
+ if(k==="tab"){tab=v;render()}
+ else if(k==="day"){P.day=v;rBuild()}
+ else if(k==="addb"){P.blocks.push(nb());rBuild()}
+ else if(k==="rb"){P.blocks.splice(b,1);rBuild()}
+ else if(k==="addi"){P.blocks[b].items.push({mov:"",reps:"",weight:""});rBuild()}
+ else if(k==="addl"){P.blocks[b].items.push({mov:"",reps:"",weight:"",lab:""});rBuild()}
+ else if(k==="cf"){P.blocks[b].fmt="";rBuild()}
+ else if(k==="ri"){P.blocks[b].items.splice(i,1);rBuild()}
+ else if(k==="pick"){mkList($("#pkb"),n=>{P.blocks[b].items[i].mov=n;$("#pk").close();rBuild()},true);$("#pk").showModal()}
+ else if(k==="cls")$("#pk").close();
+ else if(k==="copy")copy();
+ else if(k==="log"){if(two("log",a,"Tap again to log"))logIt()}
+ else if(k==="clr"){if(two("clr",a,"Tap again to clear")){P.blocks=[];P.warm="";rBuild()}}
+ else if(k==="addm")addMov();
+ else if(k==="tpl"){const r=S.log.filter(x=>x[0]===hd);P.blocks=rowsToBlocks(r);P.warm=r[0][7];tab="build";render();toast("Template loaded")}
+ else if(k==="dlall"){(async()=>{for(const x of["log","mov","rep","warm","fw"])await dl(x)})()}
+ else if(k==="wnew"){W={orig:"",name:"",fmt:"",desc:""};rBuild()}
+ else if(k==="wedit"){const w=S.warm.find(x=>x[0]===P.warm);if(w){W={orig:w[0],name:w[0],fmt:w[1],desc:w[2]};rBuild()}}
+ else if(k==="wsave")saveWarm()
+ else if(k==="wcancel"){W=null;rBuild()}
+ else if(k==="mok"||k==="mno")apprMov(a.dataset.pid,a.dataset.n,k==="mok")
+ else if(k==="esave")editMov()
+ else if(k==="edel"){if(two("edel",a,"Tap again to delete"))delMov()}
+ else if(k==="ecan"){ED=null;rEd()}
+ else if(k==="fday"){FD=v;rFw()}
+ else if(k==="fadd"){S.fw.push([FB,FD,"","",""]);rFw()}
+ else if(k==="frd"){S.fw.splice(i,1);rFw()}
+ else if(k==="fsave")saveFw()
+ else if(k==="fnew"){FN={mode:"new",name:"",copy:true};rFw()}
+ else if(k==="fren"){FN={mode:"ren",name:FB,copy:false};rFw()}
+ else if(k==="fdel"){if(two("fdel",a,"Tap again to delete block"))delBlock()}
+ else if(k==="fok")okBlock()
+ else if(k==="fcan"){FN=null;rFw()}
+ else if(k==="bk")backupAll()
+ else if(k==="dl")dl(v)});
+document.addEventListener("input",e=>{const t=e.target,f=t.dataset.f;if(!f)return;const b=t.dataset.b,i=t.dataset.i;
+ if(f==="date"){if(t.value){P.date=t.value;const g=new Date(t.value+"T00:00:00").getDay();if(g>=1&&g<=6)P.day=DAYS[g-1];rBuild()}}else if(f==="warm"){P.warm=t.value;rBuild()}
+ else if(f==="block"){P.block=t.value;rBuild()}
+ else if(f==="wname"||f==="wfmt"||f==="wdesc"){W[{wname:"name",wfmt:"fmt",wdesc:"desc"}[f]]=t.value}
+ else if(f==="en"||f==="ec"||f==="ep"||f==="ee"){ED[{en:"name",ec:"cat",ep:"pat",ee:"eq"}[f]]=t.value}
+ else if(f==="fb"){FB=t.value;rFw()}
+ else if(f==="fl"||f==="ft"||f==="fe"){S.fw[i][{fl:2,ft:3,fe:4}[f]]=t.value}
+ else if(f==="fnn"){FN.name=t.value}else if(f==="fnc"){FN.copy=t.checked}
+ else if(f==="hd"){hd=t.value;hSel()}
+ else if(f==="hm"){const q=t.value,r=q?S.log.filter(x=>x[4]&&match(x[4],q)).sort((a,c)=>a[0]<c[0]?1:-1).slice(0,40):[];$("#hr").innerHTML=r.map(x=>`<div class="it"><b>${esc(x[0])}</b> ${esc(x[1])}<small>${esc([x[2],x[3],x[5],x[4],x[6]].filter(Boolean).join(" · "))}</small></div>`).join("")||(q?"<small>No matches.</small>":"")}
+ else{if(f==="fmtpick"){if(t.value){const o=P.blocks[b];o.fmt=o.fmt?o.fmt+"\n"+t.value:t.value;rBuild()}return}if(f==="type"||f==="fmt"||f==="mins")P.blocks[b][f]=t.value;else P.blocks[b].items[i][f]=t.value;pv();save()}});
+const showLogin=(msg)=>{$("#acct").innerHTML="";$("#nav").innerHTML="";$("#tm").hidden=true;$("#v").innerHTML=`<form id="lf" class="card"><label>Sign in</label><input id="le" type="email" autocomplete="username" placeholder="Email" style="width:100%" required><input id="lp" type="password" autocomplete="current-password" placeholder="Password" style="width:100%;margin-top:6px" required><button class="pri" style="margin-top:8px;width:100%">Sign in</button><small id="lm" style="margin-top:6px;color:var(--r)">${esc(msg||"")}</small><small>Accounts are created by the owner. Ask them if you do not have one.</small></form>`;
+ $("#lf").onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector("button");b.disabled=true;const{data,error}=await db.auth.signInWithPassword({email:$("#le").value.trim(),password:$("#lp").value});b.disabled=false;if(error){$("#lm").textContent="Could not sign in. Check your email and password.";return}boot(data.session)}};
+async function boot(session){
+ $("#v").innerHTML="<p>Loading...</p>";
+ try{const{data,error}=await db.from("profiles").select("role,email").eq("id",session.user.id).maybeSingle();if(error)throw error;
+  if(!data){$("#v").innerHTML='<div class="card"><p>Your login works but has no access yet. Ask the owner.</p><button id="so0">Sign out</button></div>';$("#so0").onclick=async()=>{await db.auth.signOut();location.reload()};return}
+  R.t={owner:3,editor:2,contributor:1}[data.role]||1;R.id=session.user.id;R.email=data.email||session.user.email;
+  $("#acct").innerHTML=`<small style="text-align:right">${esc(R.email)} <span class="bd" style="background:var(--ac)">${["","Contributor","Editor","Owner"][R.t]}</span></small><div class="row" style="justify-content:flex-end;gap:4px"><button id="pw" style="min-height:30px;padding:2px 8px;font-size:12px">Password</button><button id="so" style="min-height:30px;padding:2px 8px;font-size:12px">Sign out</button></div>`;
+  $("#so").onclick=async()=>{await db.auth.signOut();location.reload()};
+  $("#pw").onclick=()=>{$("#np1").value="";$("#np2").value="";$("#acm").textContent="";$("#ac").showModal()};
+  $("#acx").onclick=()=>$("#ac").close();
+  $("#acs").onclick=async()=>{const a=$("#np1").value;if(a.length<8)return $("#acm").textContent="Use at least 8 characters.";if(a!==$("#np2").value)return $("#acm").textContent="The two passwords do not match.";const{error}=await db.auth.updateUser({password:a});if(error)return $("#acm").textContent="Could not change password: "+errTxt(error);$("#ac").close();toast("Password changed")};
+  db.rpc("touch_seen").then(()=>{},()=>{});
+  await Promise.all([loadLive(),loadWarm(),loadReps(),loadFw()]);
+ }catch(e){$("#v").innerHTML='<div class="card"><p>Could not load the data: '+esc(errTxt(e))+'</p><button id="rt">Try again</button></div>';$("#rt").onclick=()=>boot(session);return}
+ render();
+ const idle=()=>document.visibilityState==="visible"&&!document.querySelector("input:focus,textarea:focus,select:focus")&&!document.querySelector("dialog[open]");
+ const live=async()=>{if(!idle()||tab==="fw")return;try{await loadLive();render()}catch(e){}};
+ setInterval(live,45000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")live()})}
+(async()=>{
+ if(!window.supabase){$("#v").innerHTML='<div class="card"><p>Could not load the sign-in service. Check your connection and reload.</p></div>';return}
+ db=window.supabase.createClient(SB_URL,SB_KEY);
+ db.auth.onAuthStateChange(ev=>{if(ev==="SIGNED_OUT")showLogin()});
+ const{data:{session}}=await db.auth.getSession();
+ if(session)boot(session);else showLogin()
+})();
+</script></body></html>
