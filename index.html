@@ -33,10 +33,25 @@ dialog{width:min(640px,94vw);max-height:88vh;border:1px solid var(--bd);border-r
 dialog::backdrop{background:#0008}
 .fr{display:grid;grid-template-columns:1fr 40px;gap:6px;margin:8px 0;padding-bottom:8px;border-bottom:1px solid var(--bd)}.fr textarea{grid-column:1/-1;width:100%}.res{max-height:48vh;overflow:auto;margin-top:6px}
 #t{margin:0;border:0;top:auto;right:auto;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--tx);color:var(--bg);padding:10px 14px;border-radius:6px;z-index:20;max-width:90vw}
+#stk .row{flex-wrap:nowrap;align-items:flex-start;gap:6px}#stk #tm{flex:1 1 auto}#rtg{margin-top:6px;white-space:nowrap;font-weight:600;min-height:36px;padding:4px 10px}#rtg.on{background:var(--ac);color:var(--ct);border-color:var(--ac)}
+#refp{position:fixed;z-index:6;left:0;right:0;bottom:0;height:var(--rph,42vh);background:var(--cd);border-top:2px solid var(--ac);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+#refp[hidden]{display:none}
+#rph{display:flex;gap:4px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--bd);flex:0 0 auto;flex-wrap:wrap}
+#rph .sp{flex:1}#rph button{min-height:34px;padding:4px 10px;font-size:13px}
+#rpb{overflow:auto;padding:8px 12px;flex:1 1 auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#rpb p{margin:6px 0}
+body.rpc #refp{height:auto}body.rpc #rpb{display:none}
+body.rp main{padding-bottom:calc(var(--rph,42vh) + 24px)}body.rp.rpc main{padding-bottom:90px}
+body.rp #v details[data-k]{display:none}
+@media (min-width:900px){#refp{left:auto;top:0;width:min(440px,38vw);height:auto;border-top:0;border-left:2px solid var(--ac)}
+ body.rp main{max-width:none;margin:0;padding-right:calc(min(440px,38vw) + 16px);padding-bottom:80px}
+ body.rpc #refp{top:auto;bottom:0}body.rp.rpc main{max-width:720px;margin:0 auto;padding-right:12px}
+ #rps{display:none}}
 </style></head><body><main>
 <div class="row" style="justify-content:space-between;align-items:center"><h1>Workout Programmer</h1><div id="acct"></div></div>
-<div id="stk"><nav id="nav"></nav><div id="tm" hidden></div></div><div id="v"><p>Loading…</p></div>
+<div id="stk"><nav id="nav"></nav><div class="row"><div id="tm" hidden></div><button id="rtg" hidden>Reference</button></div></div><div id="v"><p>Loading…</p></div>
 </main><div id="t" popover="manual" hidden></div>
+<aside id="refp" hidden><div id="rph"><button class="chip on" data-rt="fw">Framework</button><button class="chip" data-rt="pv">Previous</button><button class="chip" data-rt="wu">Warm-up</button><span class="sp"></span><button id="rps">Size</button><button id="rpc">Hide</button></div><div id="rpb"></div></aside>
 <dialog id="pk"><div id="pkb"></div><div class="row" style="margin-top:8px"><button data-a="cls">Close</button></div></dialog>
 <dialog id="ac"><b>Change my password</b><input id="np1" type="password" autocomplete="new-password" placeholder="New password (at least 8 characters)" style="width:100%;margin-top:8px"><input id="np2" type="password" autocomplete="new-password" placeholder="Repeat new password" style="width:100%;margin-top:6px"><small id="acm"></small><div class="row" style="margin-top:8px"><button class="pri" id="acs">Save password</button><button id="acx">Cancel</button></div></dialog>
 <datalist id="fm"></datalist><datalist id="rp"></datalist><datalist id="wt"></datalist>
@@ -57,6 +72,27 @@ async function loadLive(){const[mv,pr,lg]=await Promise.all([pull("movements","n
 async function loadWarm(){S.warm=(await pull("warmups","name,format,description")).map(r=>[r.name,Z(r.format),Z(r.description)])}
 async function loadReps(){const o={reps:[],formats:[],types:[]};(await pull("rep_options","kind,value")).forEach(r=>o[r.kind]&&o[r.kind].push(r.value));S.reps=o}
 async function loadFw(){S.fwn=(await pull("framework_blocks","name,sort","sort")).map(r=>r.name);S.fw=(await pull("framework_rows","block,day,section,description,example")).map(r=>[r.block,r.day,Z(r.section),Z(r.description),Z(r.example)])}
+const RP={on:false,rt:"fw",sz:1,c:false,html:"",k2:""},OP={fw:false,pv:false},RSZ=["28vh","42vh","60vh"];
+try{const j=JSON.parse(localStorage.getItem("refpanel")||"null");if(j)Object.assign(RP,{on:!!j.on,rt:j.rt||"fw",sz:j.sz>=0&&j.sz<3?j.sz:1,c:!!j.c})}catch(e){}
+const rpSave=()=>{try{localStorage.setItem("refpanel",JSON.stringify({on:RP.on,rt:RP.rt,sz:RP.sz,c:RP.c}))}catch(e){}};
+function rpRender(force){
+ const on=RP.on&&tab==="build",tg=$("#rtg");
+ document.body.classList.toggle("rp",on);document.body.classList.toggle("rpc",on&&RP.c);
+ $("#refp").hidden=!on;tg.hidden=tab!=="build";tg.textContent=RP.on?"Reference: On":"Reference: Off";tg.classList.toggle("on",RP.on);
+ document.documentElement.style.setProperty("--rph",RSZ[RP.sz]);
+ if(!on)return;
+ document.querySelectorAll("#rph [data-rt]").forEach(b=>b.classList.toggle("on",b.dataset.rt===RP.rt));
+ $("#rpc").textContent=RP.c?"Show":"Hide";
+ const bk=blk();let h="";
+ if(RP.rt==="fw"){const fw=S.fw.filter(r=>r[0]===bk&&r[1]===P.day);h=`<b>${esc(bk)} \u00b7 ${esc(P.day)}</b>`+(fw.map(r=>`<p><b>${esc(r[2])}</b> ${esc(r[3])}${r[4]?`<small>e.g. ${esc(r[4])}</small>`:""}</p>`).join("")||"<p>No framework for this block and day yet.</p>")}
+ else if(RP.rt==="pv"){h=`<b>Previous ${esc(P.day)}</b><pre>${esc(prevText())}</pre>`}
+ else{const w=S.warm.find(x=>x[0]===P.warm);h=w?`<b>${esc(w[0])}</b><pre>${esc(w[1]+"\n"+w[2])}</pre>`:"<p>No warm-up chosen yet.</p>"}
+ const k2=RP.rt+"|"+bk+"|"+P.day;if(!force&&h===RP.html&&k2===RP.k2)return;
+ const b=$("#rpb"),keep=k2===RP.k2&&!force,t=b.scrollTop;RP.html=h;RP.k2=k2;b.innerHTML=h;b.scrollTop=keep?t:0}
+document.addEventListener("click",e=>{const t=e.target.closest("#rtg,[data-rt],#rps,#rpc");if(!t)return;
+ if(t.id==="rtg")RP.on=!RP.on;else if(t.id==="rps")RP.sz=(RP.sz+1)%3;else if(t.id==="rpc")RP.c=!RP.c;else RP.rt=t.dataset.rt;
+ rpSave();rpRender(true)});
+document.addEventListener("toggle",e=>{const k=e.target.dataset&&e.target.dataset.k;if(k)OP[k]=e.target.open},true);
 const PN={};
 const pendGroups=()=>{const m=new Map();for(const r of S.logP){const k=r[9]+"|"+r[0];if(!m.has(k))m.set(k,{u:r[9],d:r[0],rows:[]});m.get(k).rows.push(r)}return [...m.values()].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0)};
 const pwHtml=()=>{const g=pendGroups();return `<div class="card"><label>Workouts to review (${g.length})</label>${g.map(x=>{const r=x.rows[0],mine=x.u===R.id;return `<div class="it" style="cursor:default"><b>${esc(x.d)} ${esc(r[1])}</b><small>logged by <span class="pn" data-pid="${esc(x.u)}">someone</span>, already in the history, waiting for review</small><pre>${esc("Block: "+(legacy(r[8])||"n/a")+"\n\n"+textOf(x.d,r[1],r[7],rowsToBlocks(x.rows)))}</pre><div class="row">${R.t>=2?`<button class="pri" data-a="wok" data-u="${esc(x.u)}" data-d="${esc(x.d)}">Approve</button><button data-a="wed" data-u="${esc(x.u)}" data-d="${esc(x.d)}">Edit first</button><button data-a="wno" data-u="${esc(x.u)}" data-d="${esc(x.d)}">Reject</button>`:mine?`<button data-a="wno" data-u="${esc(x.u)}" data-d="${esc(x.d)}">Withdraw</button>`:""}</div></div>`}).join("")||"<small>Nothing waiting for approval.</small>"}</div>`};
@@ -138,11 +174,11 @@ const pv=()=>{const e=$("#pv");if(e)e.textContent=textOf(P.date,P.day,P.warm,P.b
 function rBuild(){
  if(!P.blocks.length)P.blocks=[nb()];const bk=blk(),fw=S.fw.filter(r=>r[0]===bk&&r[1]===P.day),w=S.warm.find(x=>x[0]===P.warm);
  $("#v").innerHTML=`${P.pendingFrom?pbanner():""}<div class="card"><div class="row"><input type="date" value="${P.date}" data-f="date">${DAYS.map(d=>`<button class="chip ${d===P.day?"on":""}" data-a="day" data-v="${d}">${d.slice(0,3)}</button>`).join("")}</div><div class="row" style="margin-top:6px"><label style="margin:0">Block</label><select data-f="block">${S.fwn.map(n=>`<option ${n===bk?"selected":""}>${esc(n)}</option>`).join("")}</select></div>
- <details><summary>Framework: ${esc(bk)} · ${P.day}</summary>${fw.map(r=>`<p><b>${esc(r[2])}</b> ${esc(r[3])}${r[4]?`<small>e.g. ${esc(r[4])}</small>`:""}</p>`).join("")||"<p>No framework for this block and day yet.</p>"}</details>
- <details><summary>Previous ${P.day}</summary><pre>${esc(prevText())}</pre></details></div>
+ <details data-k="fw" ${OP.fw?"open":""}><summary>Framework: ${esc(bk)} · ${P.day}</summary>${fw.map(r=>`<p><b>${esc(r[2])}</b> ${esc(r[3])}${r[4]?`<small>e.g. ${esc(r[4])}</small>`:""}</p>`).join("")||"<p>No framework for this block and day yet.</p>"}</details>
+ <details data-k="pv" ${OP.pv?"open":""}><summary>Previous ${P.day}</summary><pre>${esc(prevText())}</pre></details></div>
  <div class="card"><label>Warm-up</label><select data-f="warm" style="width:100%"><option value="">None</option>${S.warm.map(x=>`<option ${x[0]===P.warm?"selected":""}>${esc(x[0])}</option>`).join("")}</select><small id="wtm"></small>${w?`<pre>${esc(w[1]+"\n"+w[2])}</pre>`:""}${R.t<2?"":`<div class="row" style="margin-top:6px"><button data-a="wnew">New warm-up</button>${w?'<button data-a="wedit">Edit this warm-up</button>':""}</div>${W?wForm():""}`}</div>
  ${P.blocks.map(blockHtml).join("")}<button data-a="addb">+ Add block</button>
- <div class="card" style="margin-top:10px"><label>WhatsApp preview</label><pre id="pv"></pre><div class="row"><button class="pri" data-a="copy">Copy for WhatsApp</button><button data-a="log">Log workout</button><button data-a="clr">Clear</button></div></div>`;pv();save()}
+ <div class="card" style="margin-top:10px"><label>WhatsApp preview</label><pre id="pv"></pre><div class="row"><button class="pri" data-a="copy">Copy for WhatsApp</button><button data-a="log">Log workout</button><button data-a="clr">Clear</button></div></div>`;pv();save();rpRender()}
 function rMov(){
  const u=i=>[...new Set(S.movs.map(m=>m[i]))].filter(Boolean).sort().map(x=>`<option>${esc(x)}</option>`).join("");
  $("#v").innerHTML=`${rvHtml()}<div class="card"><div id="ml"></div></div><div class="card"><label>${R.t<2?"Suggest a new movement (goes live once approved)":"Add a movement"}</label><div class="row"><input id="nm" placeholder="Name (e.g. Push Up)"><select id="nc">${u(1)}</select><select id="np">${u(2)}</select><input id="ne" placeholder="Equipment"></div><button class="pri" data-a="addm" style="margin-top:6px">Add to library</button></div>${R.t<2?"":`<div class="card"><label>Edit or delete a movement</label><div id="ed"></div></div>`}`;mkList($("#ml"),R.t<2?null:n=>{const m=S.movs.find(x=>x[0]===n);if(!m)return;ED={orig:n,name:m[0],cat:m[1],pat:m[2],eq:m[3]||""};rEd();$("#ed").scrollIntoView({behavior:"smooth",block:"center"})},false);rEd();fillNames();{const ml=$("#ml"),nc=$("#nc"),np=$("#np"),fill=(c,keep)=>{np.innerHTML=patsFor(c).map(x=>`<option>${esc(x)}</option>`).join("");if(keep&&[...np.options].some(o=>o.value===keep))np.value=keep},sy=()=>{const c=ml.querySelector(".fc").value,pt=ml.querySelector(".fp").value;if(c&&[...nc.options].some(o=>o.value===c))nc.value=c;fill(nc.value,pt||np.value)};fill(nc.value);ml.addEventListener("input",sy);nc.addEventListener("input",()=>fill(nc.value,np.value))}}
@@ -190,7 +226,7 @@ async function addMovement(n,c,p,eq){if(!n){toast("Enter a name");return false}
 async function copy(){const t=$("#pv").textContent;try{await navigator.clipboard.writeText(t);toast("Copied. Paste into WhatsApp")}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("Copied. Paste into WhatsApp")}catch(x){toast("Press and hold the preview to copy")}a.remove()}}
 const two=(k,b,t)=>{if(arm===k){arm="";return true}arm=k;const o=b.textContent;b.textContent=t;setTimeout(()=>{if(arm===k){arm="";if(tab==="build")rBuild();else b.textContent=o}},4000);return false};
 function render(){if((tab==="fw"&&R.t<2)||((tab==="exp"||tab==="team")&&R.t<3))tab="build";ST=stats();$("#nav").innerHTML=[["build","Build"],["mov","Movements"],["hist","History"+(R.t>=2&&pendGroups().length?" ("+pendGroups().length+")":"")],...(R.t>=2?[["fw","Framework"]]:[]),...(R.t===3?[["exp","Export"],["team","Team"]]:[])].map(([k,l])=>`<button class="${k===tab?"on":""}" data-a="tab" data-v="${k}">${l}</button>`).join("");$("#tm").hidden=tab!=="build";({build:rBuild,mov:rMov,hist:rHist,fw:rFw,exp:rExp,team:rTeam})[tab]();
- $("#fm").innerHTML=S.reps.formats.map(x=>`<option value="${esc(x)}">`).join("");$("#rp").innerHTML=S.reps.reps.map(x=>`<option value="${esc(x)}">`).join("");$("#wt").innerHTML=S.reps.types.map(x=>`<option value="${esc(x)}">`).join("")}
+ $("#fm").innerHTML=S.reps.formats.map(x=>`<option value="${esc(x)}">`).join("");$("#rp").innerHTML=S.reps.reps.map(x=>`<option value="${esc(x)}">`).join("");$("#wt").innerHTML=S.reps.types.map(x=>`<option value="${esc(x)}">`).join("");rpRender()}
 document.addEventListener("click",e=>{const a=e.target.closest("[data-a]");if(!a||!db)return;const {a:k,b,i,v}=a.dataset;
  if(k==="tab"){tab=v;render()}
  else if(k==="day"){P.day=v;rBuild()}
