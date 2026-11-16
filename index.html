@@ -39,19 +39,23 @@ dialog::backdrop{background:#0008}
 #rph{display:flex;gap:4px;align-items:center;padding:6px 8px;border-bottom:1px solid var(--bd);flex:0 0 auto;flex-wrap:wrap}
 #rph .sp{flex:1}#rph button{min-height:34px;padding:4px 10px;font-size:13px}
 #rpb{overflow:auto;padding:8px 12px;flex:1 1 auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-#rpb p{margin:6px 0}
+#rpb p{margin:6px 0}#rpl{display:none}
 body.rpc #refp{height:auto}body.rpc #rpb{display:none}
 body.rp main{padding-bottom:calc(var(--rph,42vh) + 24px)}body.rp.rpc main{padding-bottom:90px}
 body.rp #v details[data-k]{display:none}
-@media (min-width:900px){#refp{left:auto;top:0;width:min(440px,38vw);height:auto;border-top:0;border-left:2px solid var(--ac)}
+@media (min-width:900px),(orientation:landscape) and (max-height:600px){#refp{left:auto;top:0;width:min(440px,38vw);height:auto;border-top:0;border-left:2px solid var(--ac)}
  body.rp main{max-width:none;margin:0;padding-right:calc(min(440px,38vw) + 16px);padding-bottom:80px}
  body.rpc #refp{top:auto;bottom:0}body.rp.rpc main{max-width:720px;margin:0 auto;padding-right:12px}
- #rps{display:none}}
+ #rps{display:none}
+ #rpl{display:inline-block}
+ body.rpl #refp{left:0;right:auto;border-left:0;border-right:2px solid var(--ac)}
+ body.rp.rpl main{padding-right:12px;padding-left:calc(min(440px,38vw) + 16px)}
+ body.rp.rpc.rpl main{padding-left:12px}}
 </style></head><body><main>
 <div class="row" style="justify-content:space-between;align-items:center"><h1>Workout Programmer</h1><div id="acct"></div></div>
 <div id="stk"><nav id="nav"></nav><div class="row"><div id="tm" hidden></div><button id="rtg" hidden>Reference</button></div></div><div id="v"><p>Loading…</p></div>
 </main><div id="t" popover="manual" hidden></div>
-<aside id="refp" hidden><div id="rph"><button class="chip on" data-rt="fw">Framework</button><button class="chip" data-rt="pv">Previous</button><button class="chip" data-rt="wu">Warm-up</button><span class="sp"></span><button id="rps">Size</button><button id="rpc">Hide</button></div><div id="rpb"></div></aside>
+<aside id="refp" hidden><div id="rph"><button class="chip on" data-rt="fw">Framework</button><button class="chip" data-rt="pv">Previous</button><button class="chip" data-rt="wu">Warm-up</button><span class="sp"></span><button id="rpl" title="Move the panel to the other side">\u21c4 Side</button><button id="rps">Size</button><button id="rpc">Hide</button></div><div id="rpb"></div></aside>
 <dialog id="pk"><div id="pkb"></div><div class="row" style="margin-top:8px"><button data-a="cls">Close</button></div></dialog>
 <dialog id="ac"><b>Change my password</b><input id="np1" type="password" autocomplete="new-password" placeholder="New password (at least 8 characters)" style="width:100%;margin-top:8px"><input id="np2" type="password" autocomplete="new-password" placeholder="Repeat new password" style="width:100%;margin-top:6px"><small id="acm"></small><div class="row" style="margin-top:8px"><button class="pri" id="acs">Save password</button><button id="acx">Cancel</button></div></dialog>
 <datalist id="fm"></datalist><datalist id="rp"></datalist><datalist id="wt"></datalist>
@@ -72,12 +76,12 @@ async function loadLive(){const[mv,pr,lg]=await Promise.all([pull("movements","n
 async function loadWarm(){S.warm=(await pull("warmups","name,format,description")).map(r=>[r.name,Z(r.format),Z(r.description)])}
 async function loadReps(){const o={reps:[],formats:[],types:[]};(await pull("rep_options","kind,value")).forEach(r=>o[r.kind]&&o[r.kind].push(r.value));S.reps=o}
 async function loadFw(){S.fwn=(await pull("framework_blocks","name,sort","sort")).map(r=>r.name);S.fw=(await pull("framework_rows","block,day,section,description,example")).map(r=>[r.block,r.day,Z(r.section),Z(r.description),Z(r.example)])}
-const RP={on:false,rt:"fw",sz:1,c:false,html:"",k2:""},OP={fw:false,pv:false},RSZ=["28vh","42vh","60vh"];
-try{const j=JSON.parse(localStorage.getItem("refpanel")||"null");if(j)Object.assign(RP,{on:!!j.on,rt:j.rt||"fw",sz:j.sz>=0&&j.sz<3?j.sz:1,c:!!j.c})}catch(e){}
-const rpSave=()=>{try{localStorage.setItem("refpanel",JSON.stringify({on:RP.on,rt:RP.rt,sz:RP.sz,c:RP.c}))}catch(e){}};
+const RP={on:false,rt:"fw",sz:1,c:false,l:false,html:"",k2:""},OP={fw:false,pv:false},RSZ=["28vh","42vh","60vh"];
+try{const j=JSON.parse(localStorage.getItem("refpanel")||"null");if(j)Object.assign(RP,{on:!!j.on,rt:j.rt||"fw",sz:j.sz>=0&&j.sz<3?j.sz:1,c:!!j.c,l:!!j.l})}catch(e){}
+const rpSave=()=>{try{localStorage.setItem("refpanel",JSON.stringify({on:RP.on,rt:RP.rt,sz:RP.sz,c:RP.c,l:RP.l}))}catch(e){}};
 function rpRender(force){
  const on=RP.on&&tab==="build",tg=$("#rtg");
- document.body.classList.toggle("rp",on);document.body.classList.toggle("rpc",on&&RP.c);
+ document.body.classList.toggle("rp",on);document.body.classList.toggle("rpc",on&&RP.c);document.body.classList.toggle("rpl",on&&RP.l);
  $("#refp").hidden=!on;tg.hidden=tab!=="build";tg.textContent=RP.on?"Reference: On":"Reference: Off";tg.classList.toggle("on",RP.on);
  document.documentElement.style.setProperty("--rph",RSZ[RP.sz]);
  if(!on)return;
@@ -89,8 +93,8 @@ function rpRender(force){
  else{const w=S.warm.find(x=>x[0]===P.warm);h=w?`<b>${esc(w[0])}</b><pre>${esc(w[1]+"\n"+w[2])}</pre>`:"<p>No warm-up chosen yet.</p>"}
  const k2=RP.rt+"|"+bk+"|"+P.day;if(!force&&h===RP.html&&k2===RP.k2)return;
  const b=$("#rpb"),keep=k2===RP.k2&&!force,t=b.scrollTop;RP.html=h;RP.k2=k2;b.innerHTML=h;b.scrollTop=keep?t:0}
-document.addEventListener("click",e=>{const t=e.target.closest("#rtg,[data-rt],#rps,#rpc");if(!t)return;
- if(t.id==="rtg")RP.on=!RP.on;else if(t.id==="rps")RP.sz=(RP.sz+1)%3;else if(t.id==="rpc")RP.c=!RP.c;else RP.rt=t.dataset.rt;
+document.addEventListener("click",e=>{const t=e.target.closest("#rtg,[data-rt],#rps,#rpc,#rpl");if(!t)return;
+ if(t.id==="rtg"){RP.on=!RP.on;if(RP.on)RP.c=false}else if(t.id==="rps")RP.sz=(RP.sz+1)%3;else if(t.id==="rpc")RP.c=!RP.c;else if(t.id==="rpl")RP.l=!RP.l;else RP.rt=t.dataset.rt;
  rpSave();rpRender(true)});
 document.addEventListener("toggle",e=>{const k=e.target.dataset&&e.target.dataset.k;if(k)OP[k]=e.target.open},true);
 const PN={};
