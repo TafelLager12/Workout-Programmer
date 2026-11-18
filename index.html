@@ -150,8 +150,8 @@ function mkList(root,onPick,rand){
  root.oninput=e=>{if(e.target.classList.contains("fc")){const c=e.target.value,fp=root.querySelector(".fp"),cur=fp.value,ps=[...new Set(S.movs.filter(m=>!c||m[1]===c).map(m=>m[2]))].filter(Boolean).sort();fp.innerHTML=opt("All patterns",ps);if(ps.includes(cur))fp.value=cur}if(e.target.classList.contains("ac")){const ap=root.querySelector(".ap");ap.innerHTML=optS("Pattern",patsFor(e.target.value),ap.value)}if(!e.target.closest(".addbox"))draw()};draw();
  root.onclick=e=>{if(e.target.classList.contains("adm")){const n=root.querySelector(".q").value.trim(),c=root.querySelector(".ac").value,p=root.querySelector(".ap").value;if(!c||!p)return toast("Pick a category and a pattern");addMovement(n,c,p,root.querySelector(".ae").value.trim()).then(ok=>{if(ok&&onPick)onPick(n)});return}const i=e.target.closest(".it");if(i&&onPick)onPick(i.dataset.n);if(e.target.classList.contains("rnd")){const c=f().filter(m=>status(m[0])!=="Recent");if(!c.length)return toast("Nothing matches those filters");onPick(c[Math.floor(Math.random()*c.length)][0])}};
 }
-function textOf(date,day,warm,blocks){
- const w=S.warm.find(x=>x[0]===warm);let t=`${date.replace(/-/g,"")}\n\n*${day}*\n\n*Warm-Up*\n`;if(w)t+=`${w[0]}\n${w[1]}\n${w[2]}\n`;t+="\n";
+function textOf(date,day,warm,blocks,omitEmpty){
+ const w=S.warm.find(x=>x[0]===warm);let t=`${date.replace(/-/g,"")}\n\n*${day}*\n\n`;if(w||warm||!omitEmpty){t+="*Warm-Up*\n";if(w)t+=`${w[0]}\n${w[1]}\n${w[2]}\n`;else if(warm)t+=warm+"\n";t+="\n"}
  for(const b of blocks){if(!b.items.some(i=>i.mov)&&!b.fmt)continue;t+=`*${b.type||"Workout"}*\n`;if(b.fmt)t+=b.fmt+"\n";for(const i of b.items){if(i.lab)t+=i.lab+"\n";if(i.mov)t+=[i.reps,i.mov,i.weight].filter(Boolean).join(" ")+"\n"}t+="\n"}
  return t.trim()}
 function rowsToBlocks(rows){const bl=[];let last="";for(const r of rows){if(!bl.length||r[2]!==last){bl.push({type:r[2],fmt:r[3],items:[]});last=r[2]}else if(r[3]&&r[3]!==bl[bl.length-1].fmt){const b=bl[bl.length-1];if(!b.fmt&&!b.items.length)b.fmt=r[3];else b.items.push({mov:"",reps:"",weight:"",lab:r[3]})}if(r[4])bl[bl.length-1].items.push({mov:r[4],reps:r[5],weight:r[6]})}return bl}
@@ -178,13 +178,13 @@ function tm(){const el=$("#tm");if(!el)return;let tot=0,unk=0;
   if(s)s.textContent=v==null?"unknown, enter minutes":"≈ "+rd(v)+" min"});
  const over=tot>LIMIT;el.hidden=false;el.className=over?"over":"";
  el.innerHTML=`<b>≈ ${rd(tot)} / ${LIMIT} min</b>`+(unk?` <span style="color:var(--mu)">(+${unk} without a time)</span>`:"")+(over?" · over the window":"")}
-const pv=()=>{const e=$("#pv");if(e)e.textContent=textOf(P.date,P.day,P.warm,P.blocks);tm()};
+const pv=()=>{const e=$("#pv");if(e)e.textContent=textOf(P.date,P.day,P.warm,P.blocks,true);tm()};
 function rBuild(){ST=stats(blk());
  if(!P.blocks.length)P.blocks=[nb()];const bk=blk(),fw=S.fw.filter(r=>r[0]===bk&&r[1]===P.day),w=S.warm.find(x=>x[0]===P.warm);
  document.body.classList.toggle("ro",RO);$("#v").innerHTML=`${P.pendingFrom?pbanner():""}<div class="card"><div class="row"><input type="date" value="${P.date}" data-f="date">${DAYS.map(d=>`<button class="chip ${d===P.day?"on":""}" data-a="day" data-v="${d}">${d.slice(0,3)}</button>`).join("")}</div><div class="row" style="margin-top:6px"><label style="margin:0">Block</label><select data-f="block">${S.fwn.map(n=>`<option ${n===bk?"selected":""}>${esc(n)}</option>`).join("")}</select></div>
  <details data-k="fw" ${OP.fw?"open":""}><summary>Framework: ${esc(bk)} · ${P.day}</summary>${fw.map(r=>`<p><b>${esc(r[2])}</b> ${esc(r[3])}${r[4]?`<small>e.g. ${esc(r[4])}</small>`:""}</p>`).join("")||"<p>No framework for this block and day yet.</p>"}</details>
  <details data-k="pv" ${OP.pv?"open":""}><summary>Previous ${P.day}</summary><pre>${esc(prevText())}</pre></details></div>
- <div class="card"><label>Warm-up</label><select data-f="warm" style="width:100%"><option value="">None</option>${S.warm.map(x=>`<option ${x[0]===P.warm?"selected":""}>${esc(x[0])}</option>`).join("")}</select><small id="wtm"></small>${w?`<pre>${esc(w[1]+"\n"+w[2])}</pre>`:""}${R.t<2?"":`<div class="row" style="margin-top:6px"><button data-a="wnew">New warm-up</button>${w?'<button data-a="wedit">Edit this warm-up</button>':""}</div>${W?wForm():""}`}</div>
+ <div class="card"><label>Warm-up</label><select data-f="warm" style="width:100%"><option value="">None</option>${[...S.warm].sort((a,b)=>a[0].localeCompare(b[0],"en",{numeric:true,sensitivity:"base"})).map(x=>`<option ${x[0]===P.warm?"selected":""}>${esc(x[0])}</option>`).join("")}</select><small id="wtm"></small>${w?`<pre>${esc(w[1]+"\n"+w[2])}</pre>`:""}<div class="row" style="margin-top:6px"><button data-a="wnew">New warm-up</button>${w&&R.t>=2?'<button data-a="wedit">Edit this warm-up</button><button data-a="wdel">Delete this warm-up</button>':""}</div>${W?wForm():""}</div>
  <div class="row" style="margin:8px 0"><button data-a="ro" class="${RO?"pri":""}">${RO?"Reordering: On \u2713":"Reorder"}</button>${RO?"<small>Use the arrows, then tap again when done.</small>":""}</div>${P.blocks.map(blockHtml).join("")}<button data-a="addb">+ Add block</button>
  <div class="card" style="margin-top:10px"><label>WhatsApp preview</label><pre id="pv"></pre><div class="row"><button class="pri" data-a="copy">Copy for WhatsApp</button><button data-a="log">Log workout</button><button data-a="clr">Clear</button></div></div>`;pv();save();rpRender()}
 function rMov(){ST=stats(blk());
@@ -199,6 +199,7 @@ async function delMov(){try{const{error}=await db.from("movements").delete().eq(
 async function saveWarm(){const name=W.name.trim()||(W.orig||nextWarm()),fmt=W.fmt.trim(),desc=W.desc.trim();if(!fmt&&!desc)return toast("Add the exercises first");
  if(S.warm.some(w=>w[0]!==W.orig&&w[0].trim().toLowerCase()===name.toLowerCase()))return toast("A warm-up with that name already exists");
  try{const row={name,format:fmt||null,description:desc||null};const q=W.orig?db.from("warmups").update(row).eq("name",W.orig):db.from("warmups").insert(row);const{error}=await q;if(error)throw error;await loadWarm();P.warm=name;W=null;toast("Saved "+name);rBuild()}catch(e){toast("Could not save warm-up: "+errTxt(e))}}
+async function delWarm(){try{const n=P.warm;if(!n||R.t<2)return;const{error}=await db.from("warmups").delete().eq("name",n);if(error)throw error;await loadWarm();P.warm="";W=null;toast("Deleted "+n);rBuild()}catch(e){toast("Could not delete: "+errTxt(e))}}
 async function saveFw(){try{const{error}=await db.rpc("save_framework",{p_names:[...S.fwn],p_rows:S.fw.filter(r=>r[2]||r[3]||r[4])});if(error)throw error;toast("Framework saved")}catch(e){toast("Could not save framework: "+errTxt(e))}}
 function okBlock(){const n=FN.name.trim();if(!n)return toast("Enter a name");if(S.fwn.some(x=>x.toLowerCase()===n.toLowerCase()&&!(FN.mode==="ren"&&x===FB)))return toast("That block name already exists");
  if(FN.mode==="new"){if(FN.copy)S.fw.push(...S.fw.filter(r=>r[0]===FB).map(r=>[n,...r.slice(1)]));S.fwn.push(n)}else{S.fw.forEach(r=>{if(r[0]===FB)r[0]=n});S.fwn=S.fwn.map(x=>x===FB?n:x);if(P.block===FB)P.block=n}
@@ -259,6 +260,7 @@ document.addEventListener("click",e=>{const a=e.target.closest("[data-a]");if(!a
  else if(k==="dlall"){(async()=>{for(const x of["log","mov","rep","warm","fw"])await dl(x)})()}
  else if(k==="wnew"){W={orig:"",name:"",fmt:"",desc:""};rBuild()}
  else if(k==="wedit"){const w=S.warm.find(x=>x[0]===P.warm);if(w){W={orig:w[0],name:w[0],fmt:w[1],desc:w[2]};rBuild()}}
+ else if(k==="wdel"){if(two("wdel"+P.warm,a,"Tap again to delete"))delWarm()}
  else if(k==="wsave")saveWarm()
  else if(k==="wcancel"){W=null;rBuild()}
  else if(k==="mok"||k==="mno")apprMov(a.dataset.pid,a.dataset.n,k==="mok")
